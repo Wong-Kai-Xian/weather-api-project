@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Details</title>
+</head>
+<body>
+    <h1>Weather Details for {{ city }}</h1>
+    <h2>{{ date }}</h2>
+    <p>Max Temp: {{ day_data['temp']['max'] }}°C</p>
+    <p>Min Temp: {{ day_data['temp']['min'] }}°C</p>
+    <p>Weather: {{ day_data['weather'][0]['description'] }}</p>
+    <img src="http://openweathermap.org/img/wn/{{ day_data['weather'][0]['icon'] }}@2x.png" alt="{{ day_data['weather'][0]['description'] }}">
+    <p>Humidity: {{ day_data['humidity'] }}%</p>
+    <p>Wind Speed: {{ day_data['speed'] }} m/s</p>
+    <a href="/weather?city={{ city }}">Back to Forecast</a>
+</body>
+</html>

@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.live-clock {
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.current-weather {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.current-weather .location {
+    font-size: 12px;
+    color: gray;
+}
+
+.current-weather .city-name {
+    font-size: 36px;
+    margin: 0;
+}
+
+.current-weather .temperature {
+    font-size: 48px;
+    margin: 10px 0;
+}
+
+.current-weather .weather-description {
+    font-size: 16px;
+    color: #555;
+}
+
+.current-weather .temp-range {
+    font-size: 14px;
+    color: gray;
+}
+
+.current-weather .timestamp {
+    font-size: 12px;
+    color: #777;
+    margin-top: 10px;
+    display: block;
+    text-align: right;
+}
+
+.current-weather .refresh-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.current-weather .refresh-button:hover {
+    background: #0056b3;
+}
+
+.current-weather .weather-comment {
+    font-style: italic;
+    margin-top: 10px;
+    color: #333;
+}
+
+.forecast-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.forecast-table .table-container {
+    overflow-x: auto;
+    white-space: nowrap; /* Prevents wrapping of columns */
+    max-width: 100%; /* Restrict table to page width */
+    margin: 0 auto;
+}
+
+.forecast-table table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.forecast-table th,
+.forecast-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.forecast-table th {
+    background: #f8f8f8;
+    font-weight: bold;
+}
+
+.forecast-table table tr {
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.forecast-table table tr:hover {
+    background-color: #f0f0f0;
+}
+
+.forecast-table img {
+    display: block;
+    margin: 0 auto;
+}

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather for {{ city }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Live Clock -->
+        <div id="live-clock" class="live-clock"></div>
+
+        <!-- Current Weather Section -->
+        <div class="current-weather">
+            <small class="location">{{ current['sys']['country'] }}</small>
+            <h1 class="city-name">{{ current['name'] }}</h1>
+            <h2 id="current-temp" class="temperature">{{ current['main']['temp']}}°C</h2>
+            <small id="current-description" class="weather-description">{{ current['weather'][0]['description'].capitalize() }}</small><br>
+            <small id="current-max" class="temp-range">Max: {{ current['main']['temp_max'] }}°C</small><br>
+            <small id="current-min" class="temp-range">Min: {{ current['main']['temp_min'] }}°C</small>
+
+            <!-- Predefined Text Based on Weather -->
+            <p class="weather-comment">
+                {% if 'rain' in current['weather'][0]['description'] %}
+                    Don't forget your umbrella!
+                {% elif 'cloud' in current['weather'][0]['description'] %}
+                   It looks a bit cloudy today.
+                {% elif 'sun' in current['weather'][0]['description'] %}
+                    A sunny day ahead—stay hydrated!
+                {% else %}
+                    Enjoy your day!
+                {% endif %}
+            </p>
+
+            <div id="data-timestamp" class="data-timestamp">
+                <small>Data as of: <span id="current-timestamp">{{ current['dt'] | timestamp_to_datetime }}</span></small>
+            </div>
+            <button onclick="refreshCurrentWeather('{{current['name']}}')" class="refresh-button">Refresh</button>
+        </div>
+
+        <!-- Forecast Table Section -->
+        <div class="forecast-table">
+            <table>
+                <thead>
+                    <tr>
+                        {% for hour in forecast %}
+                            <th>{{ hour['dt_txt'].split(' ')[1] }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Icons Row -->
+                    <tr>
+                        {% for hour in forecast %}
+                            <td>
+                                <img src="https://openweathermap.org/img/wn/{{ hour['weather'][0]['icon'] }}@2x.png" alt="Weather Icon" width="50">
+                            </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Temperatures Row -->
+                    <tr>
+                        {% for hour in forecast %}
+                            <td>{{ hour['main']['temp']}}°C</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="forecast-table">
+            <table>
+                {% for day in daily %}
+                <tr onclick="window.location.href='/details?date={{ day['dt'] }}&city={{ city }}'">
+                    <!-- Date column -->
+                    <td>{{ day['dt'] | timestamp_to_day }}</td>
+                    <!-- Weather icon column -->
+                    <td><img src="http://openweathermap.org/img/wn/{{ day['weather'][0]['icon'] }}@2x.png" alt="{{ day['weather'][0]['description'] }}"></td>
+                    <!-- Max/Min temperature column -->
+                    <td>Max: {{ day['temp']['max'] }}°C, Min: {{ day['temp']['min'] }}°C</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <a href="/">Go Back</a>
+    <script>
+       function startClock() {
+            const clockElement = document.getElementById('live-clock');
+            if (!clockElement) {
+                console.error("Clock element not found!");
+                return;
+            }
+            setInterval(() => {
+                const now = new Date();
+             // Adjust for Malaysia time (UTC+8)
+                const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                };
+                clockElement.textContent = malaysiaTime.toLocaleString('en-US', options);
+            }, 1000);
+        }
+        window.onload = startClock; // Start clock on page load
+
+        async function refreshCurrentWeather(city) {
+            try {
+                
+                const response = await fetch(`/refresh-current-weather?city=${city}`);
+                const data = await response.json();
+                    if (data.success) {
+                        const current = data.current;
+                        const timestamp = data.timestamp;
+                        // Update current weather details dynamically
+                        document.getElementById('current-temp').textContent = `${current.main.temp}°C`;
+                        document.getElementById('current-description').textContent = current.weather[0].description;
+                        document.getElementById('current-max').textContent = `Max: ${current.main.temp_max}°C`;
+                        document.getElementById('current-min').textContent = `Min: ${current.main.temp_min}°C`;
+                        document.getElementById('current-timestamp').textContent = timestamp;
+
+                        alert('Current weather refreshed!');
+                    } else {
+                        alert(data.message || 'Failed to fetch current weather data.');
+                    }
+            } catch (error) {
+                console.error('Error refreshing current weather:', error);
+            }
+        }
+    </script>
+</body>
+</html>

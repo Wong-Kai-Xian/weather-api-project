@@ -38,7 +38,7 @@
             </div>
             <button onclick="refreshCurrentWeather('{{current['name']}}')" class="refresh-button">Refresh</button>
         </div>
-
+        <h3>24-Hours Forecast </h3>
         <!-- Forecast Table Section -->
         <div class="forecast-table">
             <table>
@@ -68,6 +68,7 @@
                 </tbody>
             </table>
         </div>
+        <h3>10-Days Forecast </h3>
         <div class="forecast-table">
             <table>
                 {% for day in daily %}

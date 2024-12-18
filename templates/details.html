@@ -2,17 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Details</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>Weather Details for {{ city }}</h1>
-    <h2>{{ date }}</h2>
-    <p>Max Temp: {{ day_data['temp']['max'] }}°C</p>
-    <p>Min Temp: {{ day_data['temp']['min'] }}°C</p>
-    <p>Weather: {{ day_data['weather'][0]['description'] }}</p>
-    <img src="http://openweathermap.org/img/wn/{{ day_data['weather'][0]['icon'] }}@2x.png" alt="{{ day_data['weather'][0]['description'] }}">
-    <p>Humidity: {{ day_data['humidity'] }}%</p>
-    <p>Wind Speed: {{ day_data['speed'] }} m/s</p>
-    <a href="/weather?city={{ city }}">Back to Forecast</a>
+    <div class="container">
+        <!-- Display daily forecast -->
+        <div class="daily-forecast">
+            <h2>Daily Forecast</h2>
+            <p>Condition: {{ day_data['weather'][0]['description'] }}</p>
+            <p>Max Temperature: {{ day_data['temp']['max'] }}°C</p>
+            <p>Min Temperature: {{ day_data['temp']['min'] }}°C</p>
+            <img src="http://openweathermap.org/img/wn/{{ day_data['weather'][0]['icon'] }}@2x.png">
+            <p>Humidity: {{ day_data['humidity'] }}%</p>
+            <p>Wind Speed: {{ day_data['speed'] }} m/s</p>
+        </div>
+        <!-- Forecast Table Section -->
+        <div class="forecast-table">
+            <table>
+                <thead>
+                    <tr>
+                        {% for hourly in hourly_data %}
+                            <th>{{ hourly['dt_txt'].split(' ')[1] }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Icons Row -->
+                    <tr>
+                        {% for hourly in hourly_data %}
+                            <td>
+                                <img src="https://openweathermap.org/img/wn/{{ hourly['weather'][0]['icon'] }}@2x.png" alt="Weather Icon" width="50">
+                            </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Temperatures Row -->
+                    <tr>
+                        {% for hour in hourly_data %}
+                            <td>{{ hour['main']['temp'] if 'main' in hour and 'temp' in hour['main'] else 'N/A' }}°C</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>

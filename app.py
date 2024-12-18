@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import requests
 import matplotlib.pyplot as plt
@@ -10,6 +10,8 @@ app = Flask(__name__)
 # Get the API key from .env
 load_dotenv()
 API_KEY = os.getenv('OPENWEATHER_API_KEY')
+hourly_forecast_data = [];
+daily_forecast_data = [];
 
 def get_daily_forecast(city):
     url = f"http://api.openweathermap.org/data/2.5/forecast/daily?q={city}&cnt=10&appid={API_KEY}&units=metric"
@@ -24,7 +26,7 @@ def get_daily_forecast(city):
         data = response.json()
         if 'list' in data:
             # Extract 10 days data
-            return data['list'][:10]
+            return data['list']
         else:
             print("Unexpected API response format. 'list' not found.")
             return None
@@ -45,7 +47,7 @@ def get_hourly_forecast(city):
         data = response.json()
         if 'list' in data:
             # Extract 24-hour data
-            return data['list'][:24]
+            return data['list']
         else:
             print("Unexpected API response format. 'list' not found.")
             return None
@@ -115,15 +117,16 @@ def index():
 
 @app.route('/weather', methods=['POST'])
 def weather():
+    global daily_forecast_data, hourly_forecast_data
     city = request.form.get('city')
-
-    forecast_data = get_hourly_forecast(city)
+    hourly_forecast_data = get_hourly_forecast(city)
     current_data = get_current_weather(city)
     daily_forecast_data = get_daily_forecast(city)
-
-    if current_data and forecast_data and daily_forecast_data :
+    
+    print(f"Current: {hourly_forecast_data}")
+    if current_data and hourly_forecast_data and daily_forecast_data :
 #        graph_path = plot_forecast(forecast, city)
-        return render_template('result.html', city=city, current=current_data, forecast=forecast_data, daily=daily_forecast_data)
+        return render_template('result.html', city=city, current=current_data, forecast=hourly_forecast_data[:24], daily=daily_forecast_data[:10])
     else:
         error = "Unable to retrieve weather data for {city}. Please check the city name or try again later."
         return render_template('index.html', error=error)
@@ -132,17 +135,53 @@ def weather():
 def details():
     date = request.args.get('date')
     city = request.args.get('city')
-    # Convert the date (timestamp) to a readable format
-    date_readable = timestamp_to_datetime(int(date))
-    daily_data = get_daily_forecast(city)
 
-    # Find the specific day's data based on the timestamp
-    selected_day = next((day for day in daily_data['list'] if str(day['dt']) == date), None)
+    # Validate and convert the date
+    try:
+        date_timestamp = int(date)
+    except ValueError:
+        return "Invalid date format", 400
 
+    # Fetch the global daily forecast data (assumes this is stored globally)
+    global daily_forecast_data, hourly_forecast_data
+    if not daily_forecast_data or not hourly_forecast_data:
+        return "Forecast data is not available.", 500
+
+    # Find the specific day's data in the daily forecast
+    selected_day = next((day for day in daily_forecast_data if day['dt'] == date_timestamp), None)
     if not selected_day:
-        return "Data not found", 404
+        return f"Daily forecast data not found for {city} on {timestamp_to_datetime(date_timestamp)}.", 404
 
-    return render_template('details.html', city=city, date=date_readable, day_data=selected_day)
+    # Calculate the start and end of the day in the selected timestamp
+    start_of_day = datetime.fromtimestamp(date_timestamp).replace(hour=0, minute=0, second=0)
+    end_of_day = start_of_day + timedelta(days=1) - timedelta(seconds=1)
+    start_of_day_unix = int(start_of_day.timestamp())
+    end_of_day_unix = int(end_of_day.timestamp())
+
+    # Find the index of the first hourly forecast within the day range
+    start_index = next(
+        (index for index, hour in enumerate(hourly_forecast_data) if start_of_day_unix <= hour['dt'] <= end_of_day_unix),
+        None
+    )
+    if start_index is None:
+        return f"No hourly forecast data available for {city} on {timestamp_to_datetime(date_timestamp)}.", 404
+
+    # Extract the 24-hour forecast data
+    hourly_data = hourly_forecast_data[start_index:start_index + 24]
+
+    # Convert the date to a readable format for display
+    date_readable = timestamp_to_datetime(date_timestamp)
+
+    print(f"Data: {hourly_data}")
+
+
+    return render_template(
+        'details.html',
+        city=city,
+        date=date_readable,
+        day_data=selected_day,
+        hourly_data=hourly_data
+    )
 
 
 if __name__ == "__main__":

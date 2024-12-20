@@ -8,16 +8,29 @@
 </head>
 <body>
     <div class="container">
-        <!-- Display daily forecast -->
-        <div class="daily-forecast">
-            <h2>Daily Forecast</h2>
-            <p>Condition: {{ day_data['weather'][0]['description'] }}</p>
-            <p>Max Temperature: {{ day_data['temp']['max'] }}°C</p>
-            <p>Min Temperature: {{ day_data['temp']['min'] }}°C</p>
+        <!-- Current Weather Section -->
+        <div class="current-weather">
+            <h1 class="city-name">{{ day_data['dt'] | timestamp_to_day }}</h1>
+            <h2 id="current-temp" class="temperature">Max: {{ day_data['temp']['max'] }}°C / Min: {{ day_data['temp']['min'] }}°C</h2>
             <img src="http://openweathermap.org/img/wn/{{ day_data['weather'][0]['icon'] }}@2x.png">
-            <p>Humidity: {{ day_data['humidity'] }}%</p>
-            <p>Wind Speed: {{ day_data['speed'] }} m/s</p>
+            <small id="current-description" class="weather-description">Condition: {{ day_data['weather'][0]['description'].capitalize() }}</small><br>
+            <small id="current-max" class="temp-range">Humidity: {{ day_data['humidity'] }}%</small>
+            <small id="current-min" class="temp-range">Wind Speed: {{ day_data['speed'] }} m/s</small>
+
+            <!-- Predefined Text Based on Weather -->
+            <p class="weather-comment">
+                {% if 'rain' in day_data['weather'][0]['description'] %}
+                    Don't forget your umbrella!
+                {% elif 'cloud' in day_data['weather'][0]['description'] %}
+                   It looks a bit cloudy today.
+                {% elif 'sun' in day_data['weather'][0]['description'] %}
+                    A sunny day ahead—stay hydrated!
+                {% else %}
+                    Enjoy your day!
+                {% endif %}
+            </p>
         </div>
+        <h3>Hourly forecast</h3>
         <!-- Forecast Table Section -->
         <div class="forecast-table">
             <table>

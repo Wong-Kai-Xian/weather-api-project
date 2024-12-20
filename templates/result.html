@@ -10,6 +10,13 @@
     <div class="container">
         <!-- Live Clock -->
         <div id="live-clock" class="live-clock"></div>
+        <div class="location-image">
+            {% if wiki_image %}
+            <img src="{{ wiki_image }}" alt="Image of {{ city }}" style="width: 100%; max-height: 300px; object-fit: cover;">
+            {% else %}
+            <p>No image available for this location.</p>
+            {% endif %}
+        </div>
 
         <!-- Current Weather Section -->
         <div class="current-weather">
@@ -37,7 +44,18 @@
                 <small>Data as of: <span id="current-timestamp">{{ current['dt'] | timestamp_to_datetime }}</span></small>
             </div>
             <button onclick="refreshCurrentWeather('{{current['name']}}')" class="refresh-button">Refresh</button>
+            <div class="aqi-section" style="width: 30%; float: left;">
+                <h2>Air Quality Index</h2>
+                {% if air_quality %}
+                <p>AQI Level: {{ air_quality['aqi'] }}</p>
+                <p>Main Pollutant: {{ air_quality['dominentpol'] }}</p>
+                <p>Location: {{ air_quality['city']['name'] }}</p>
+                {% else %}
+                <p>Air quality data not available.</p>
+                {% endif %}
+            </div>
         </div>
+
         <h3>24-Hours Forecast </h3>
         <!-- Forecast Table Section -->
         <div class="forecast-table">
@@ -80,6 +98,30 @@
                     <!-- Max/Min temperature column -->
                     <td>Max: {{ day['temp']['max'] }}°C, Min: {{ day['temp']['min'] }}°C</td>
                 </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="news-section">
+            <h2>Latest News</h2>
+            <table>
+                {% for article in news %}
+                <tr>
+                    <!-- Image on the left -->
+                    <td style="width: 120px; vertical-align: top;">
+                        <a href="{{ article['url'] }}" target="_blank">
+                            <img src="{{ article['image_url'] }}" alt="News Image" style="width: 150px; height: auto;">
+                        </a>
+                    </td>
+                    <!-- Title and description on the right -->
+                    <td style="padding-left: 10px; vertical-align: top;">
+                        <a href="{{ article['url'] }}" target="_blank" style="text-decoration: none; color: black;">
+                            <strong>{{ article['title'] }}</strong>
+                        </a>
+                        <p>{{ article['description'] }}</p>
+                        <p style="font-size: 12px; color: gray; text-align: right;">Source: {{ article['source'] or "Unknown" }}</p>
+                    </td>
+                </tr>
+                <tr><td colspan="2"><hr></td></tr> <!-- Horizontal separator -->
                 {% endfor %}
             </table>
         </div>

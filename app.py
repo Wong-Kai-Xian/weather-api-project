@@ -10,6 +10,8 @@ app = Flask(__name__)
 # Get the API key from .env
 load_dotenv()
 API_KEY = os.getenv('OPENWEATHER_API_KEY')
+NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+AIR_API_KEY = os.getenv('AIR_QUALITY_API_KEY')
 hourly_forecast_data = [];
 daily_forecast_data = [];
 
@@ -64,21 +66,47 @@ def get_current_weather(city):
         print(f"Error {response.status_code}: {response.json().get('message', 'Unknown error')}")
         return None
 
-def plot_forecast(data, city):
-    dates = [entry['dt_txt'] for entry in data['list']]
-    temps = [entry['main']['temp'] for entry in data['list']]
+def get_latest_news(country_code):
+    url = f"https://api.thenewsapi.com/v1/news/top?api_token={NEWS_API_KEY}&locale={country_code}&limit=3"
+    response = requests.get(url)
+    if response.status_code == 200:
+        articles = response.json().get('data', [])
+        return articles
+    else:
+        print(f"Error {response.status_code}: {response.json().get('message', 'Unknown error')}")
+        return []
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(dates, temps, marker='o')
-    plt.title(f"Weather Forecast for {city}")
-    plt.xlabel("Date & Time")
-    plt.ylabel("Temperature (°C)")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    image_path = "static/forecast_plot.png"
-    plt.savefig(image_path)
-    plt.close()
-    return image_path
+def get_air_quality(city):
+    url = f"https://api.waqi.info/feed/{city}/?token={AIR_API_KEY}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == "ok":
+            return data['data']
+        else:
+            print(f"Error: {data.get('data', 'Unknown error')}")
+            return None
+    else:
+        print(f"HTTP Error {response.status_code}: {response.text}")
+        return None
+
+def get_wikimedia_photo(location):
+    base_url = "https://commons.wikimedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "titles": location,
+        "prop": "pageimages|imageinfo",
+        "iiprop": "url",
+        "format": "json",
+    }
+    response = requests.get(base_url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        pages = data.get("query", {}).get("pages", {})
+        for _, page_data in pages.items():
+            if "imageinfo" in page_data:
+                return page_data["imageinfo"][0]["url"]
+    return None
 
 # Define a custom filter for Jinja2
 @app.template_filter('timestamp_to_datetime')
@@ -122,11 +150,13 @@ def weather():
     hourly_forecast_data = get_hourly_forecast(city)
     current_data = get_current_weather(city)
     daily_forecast_data = get_daily_forecast(city)
-    
-    print(f"Current: {hourly_forecast_data}")
-    if current_data and hourly_forecast_data and daily_forecast_data :
-#        graph_path = plot_forecast(forecast, city)
-        return render_template('result.html', city=city, current=current_data, forecast=hourly_forecast_data[:24], daily=daily_forecast_data[:10])
+    air_quality_data = get_air_quality(city)
+    wiki_image = get_wikimedia_photo(city)
+
+    if current_data and hourly_forecast_data and daily_forecast_data:
+        country_code = current_data.get('sys', {}).get('country', '').lower()  # Convert to lowercase for API
+        news = get_latest_news(country_code)
+        return render_template('result.html', city=city, current=current_data, forecast=hourly_forecast_data[:24], daily=daily_forecast_data[:10], news=news, air_quality=air_quality_data, wiki_image=wiki_image)
     else:
         error = "Unable to retrieve weather data for {city}. Please check the city name or try again later."
         return render_template('index.html', error=error)

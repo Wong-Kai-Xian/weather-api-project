@@ -168,28 +168,32 @@ def weather():
     daily_forecast_data = get_daily_forecast(city)
     air_quality_data = get_air_quality(city)
     google_photo = get_google_photo(city)
+    if air_quality_data:
+        aqi_level = air_quality_data['aqi']
 
-    aqi_level = air_quality_data['aqi']
-
-    # Determine color and description
-    if 0 <= aqi_level <= 50:
-        aqi_color = "good"
-        aqi_description = "Good"
-    elif 51 <= aqi_level <= 100:
-        aqi_color = "moderate"
-        aqi_description = "Moderate"
-    elif 101 <= aqi_level <= 150:
-        aqi_color = "unhealthy-sensitive"
-        aqi_description = "Unhealthy for Sensitive Groups"
-    elif 151 <= aqi_level <= 200:
-        aqi_color = "unhealthy"
-        aqi_description = "Unhealthy"
-    elif 201 <= aqi_level <= 300:
-        aqi_color = "very-unhealthy"
-        aqi_description = "Very Unhealthy"
-    else:
-        aqi_color = "hazardous"
-        aqi_description = "Hazardous"
+        # Determine color and description
+        if 0 <= aqi_level <= 50:
+            aqi_color = "good"
+            aqi_description = "Good"
+        elif 51 <= aqi_level <= 100:
+            aqi_color = "moderate"
+            aqi_description = "Moderate"
+        elif 101 <= aqi_level <= 150:
+            aqi_color = "unhealthy-sensitive"
+            aqi_description = "Unhealthy for Sensitive Groups"
+        elif 151 <= aqi_level <= 200:
+            aqi_color = "unhealthy"
+            aqi_description = "Unhealthy"
+        elif 201 <= aqi_level <= 300:
+            aqi_color = "very-unhealthy"
+            aqi_description = "Very Unhealthy"
+        elif aqi_level > 300:
+            aqi_color = "hazardous"
+            aqi_description = "Hazardous"
+    else: 
+        # Default values if no AQI data is available
+        aqi_color = "no-data"
+        aqi_description = "No Data"
 
     if current_data and hourly_forecast_data and daily_forecast_data:
         country_code = current_data.get('sys', {}).get('country', '').lower()  # Convert to lowercase for API

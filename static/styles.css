@@ -146,14 +146,49 @@ body {
     border-radius: 5px;
 }
 
-.aqi-widget {
-    display: flex;
-    gap: 20px;
-}
-.aqi-widget {
+.aqi-section {
+    text-align: center;
     padding: 10px;
     background-color: #f9f9f9;
     border-radius: 5px;
     box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
+
+.aqi-box {
+    text-align: center;
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+/* Color coding for AQI levels */
+.aqi-box.good {
+    background-color: green;
+}
+
+.aqi-box.moderate {
+    background-color: yellow;
+    color: black;
+}
+
+.aqi-box.unhealthy-sensitive {
+    background-color: orange;
+}
+
+.aqi-box.unhealthy {
+    background-color: red;
+}
+
+.aqi-box.very-unhealthy {
+    background-color: purple;
+}
+
+.aqi-box.hazardous {
+    background-color: darkred;
+}
+
+
 

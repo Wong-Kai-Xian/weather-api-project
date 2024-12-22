@@ -12,6 +12,7 @@ load_dotenv()
 API_KEY = os.getenv('OPENWEATHER_API_KEY')
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 AIR_API_KEY = os.getenv('AIR_QUALITY_API_KEY')
+PHOTO_API_KEY = os.getenv('PHOTO_API_KEY')
 hourly_forecast_data = [];
 daily_forecast_data = [];
 
@@ -90,22 +91,37 @@ def get_air_quality(city):
         print(f"HTTP Error {response.status_code}: {response.text}")
         return None
 
-def get_wikimedia_photo(location):
-    base_url = "https://commons.wikimedia.org/w/api.php"
-    params = {
-        "action": "query",
-        "titles": location,
-        "prop": "pageimages|imageinfo",
-        "iiprop": "url",
-        "format": "json",
+def get_google_photo(city):
+    # Step 1: Get the Place ID
+    search_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+    search_params = {
+        "input": city,
+        "inputtype": "textquery",
+        "fields": "place_id",
+        "key": PHOTO_API_KEY
     }
-    response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        pages = data.get("query", {}).get("pages", {})
-        for _, page_data in pages.items():
-            if "imageinfo" in page_data:
-                return page_data["imageinfo"][0]["url"]
+    search_response = requests.get(search_url, params=search_params)
+    if search_response.status_code == 200:
+        place_id = search_response.json().get("candidates", [{}])[0].get("place_id")
+        if not place_id:
+            return None
+
+        # Step 2: Get Place Details for Photo Reference
+        details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+        details_params = {
+            "place_id": place_id,
+            "fields": "photos",
+            "key": PHOTO_API_KEY
+        }
+        details_response = requests.get(details_url, params=details_params)
+        if details_response.status_code == 200:
+            photos = details_response.json().get("result", {}).get("photos", [])
+            if photos:
+                photo_reference = photos[0].get("photo_reference")
+                if photo_reference:
+                    # Step 3: Construct Photo URL
+                    photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference={photo_reference}&key={PHOTO_API_KEY}"
+                    return photo_url
     return None
 
 # Define a custom filter for Jinja2
@@ -151,12 +167,34 @@ def weather():
     current_data = get_current_weather(city)
     daily_forecast_data = get_daily_forecast(city)
     air_quality_data = get_air_quality(city)
-    wiki_image = get_wikimedia_photo(city)
+    google_photo = get_google_photo(city)
+
+    aqi_level = air_quality_data['aqi']
+
+    # Determine color and description
+    if 0 <= aqi_level <= 50:
+        aqi_color = "good"
+        aqi_description = "Good"
+    elif 51 <= aqi_level <= 100:
+        aqi_color = "moderate"
+        aqi_description = "Moderate"
+    elif 101 <= aqi_level <= 150:
+        aqi_color = "unhealthy-sensitive"
+        aqi_description = "Unhealthy for Sensitive Groups"
+    elif 151 <= aqi_level <= 200:
+        aqi_color = "unhealthy"
+        aqi_description = "Unhealthy"
+    elif 201 <= aqi_level <= 300:
+        aqi_color = "very-unhealthy"
+        aqi_description = "Very Unhealthy"
+    else:
+        aqi_color = "hazardous"
+        aqi_description = "Hazardous"
 
     if current_data and hourly_forecast_data and daily_forecast_data:
         country_code = current_data.get('sys', {}).get('country', '').lower()  # Convert to lowercase for API
         news = get_latest_news(country_code)
-        return render_template('result.html', city=city, current=current_data, forecast=hourly_forecast_data[:24], daily=daily_forecast_data[:10], news=news, air_quality=air_quality_data, wiki_image=wiki_image)
+        return render_template('result.html', city=city, current=current_data, forecast=hourly_forecast_data[:24], daily=daily_forecast_data[:10], news=news, air_quality=air_quality_data, aqi_color=aqi_color, aqi_description=aqi_description, google_photo=google_photo)
     else:
         error = "Unable to retrieve weather data for {city}. Please check the city name or try again later."
         return render_template('index.html', error=error)
@@ -202,7 +240,7 @@ def details():
     # Convert the date to a readable format for display
     date_readable = timestamp_to_datetime(date_timestamp)
 
-    print(f"Data: {hourly_data}")
+#    print(f"Data: {hourly_data}")
 
 
     return render_template(

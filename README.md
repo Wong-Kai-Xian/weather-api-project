@@ -16,15 +16,4 @@ A web-based application that provides users with real-time weather data, air qua
 - Matplotlib
 - dotenv
 
-## File Structure Description
-weather-dashboard/
-│
-├── static/
-│   └── style.css           # Contains the CSS styles used to format and design the webpage
-│
-├── templates/
-│   ├── index.html          # User input page where users enter the location for weather data
-│   ├── result.html         # Displays the weather data after the user inputs a location
-│   └── details.html        # Displays detailed weather data for a specific day (e.g., temperature, humidity, wind speed)
-│
-├── app.py                  # The main Flask application file that handles routing and API calls
+weather-dashboard/ │ ├── static/ │ └── style.css # Contains the CSS styles used to format and design the webpage │ ├── templates/ │ ├── index.html # User input page where users enter the location for weather data │ ├── result.html # Displays the weather data after the user inputs a location │ └── details.html # Displays detailed weather data for a specific day (e.g., temperature, humidity, wind speed) │ ├── app.py # The main Flask application file that handles routing and API calls │ └── requirements.txt # Contains a list of dependencies required for the project

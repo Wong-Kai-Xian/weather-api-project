@@ -16,6 +16,7 @@ A web-based application that provides users with real-time weather data, air qua
 - Matplotlib
 - dotenv
 
+## File Structure Description
 ```
 weather-dashboard/
 │

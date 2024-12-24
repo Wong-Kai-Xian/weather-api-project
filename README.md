@@ -17,9 +17,9 @@ A web-based application that provides users with real-time weather data, air qua
 - dotenv
 
 ## File Structure Description
-weather-dashboard/
-│
-├── static/
+weather-app/
+|
+|── static/
 │   └── style.css           # Contains the CSS styles used to format and design the webpage
 │
 ├── templates/
